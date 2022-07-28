@@ -10,5 +10,5 @@
 * Reliability
 * Durability
 * Performance & Efficiency
-### Sorce content
+### Source content
 Repository will consists of `svg` image for the mind map template, and `.excalidraw` source file which could be used to change and evolv existing template. 
