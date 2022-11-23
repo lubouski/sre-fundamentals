@@ -68,4 +68,44 @@ $ ldd hello
 	libc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x00007f1cb8528000)
 	/lib64/ld-linux-x86-64.so.2 (0x00007f1cb875d000)
 ```
-Included header file could be located at `/usr/include`.
+Included header files could be located at `/usr/include`.
+
+#### Syscalls functions made clear
+To properly understand how to read an output of `strace -f ./hello`, it's important to understand that on complex applications syscalls could be printed in partly randomly. 
+Line by line every syscall could be treated as a `function`, with a set of input variables. To check what exact content inside brackets means i.e `access("/etc/ld.so.preload", R_OK)` it has two variables separated by `,` so to find what `R_OK` means we need to read `$ man 2 access` -> `int access(const char *pathname, int mode);` which is pretty self explanatory.
+```
+$ man 2 access
+ACCESS(2)                                             Linux Programmer's Manual                                             ACCESS(2)
+
+NAME
+       access, faccessat, faccessat2 - check user's permissions for a file
+
+SYNOPSIS
+       #include <unistd.h>
+
+       int access(const char *pathname, int mode);
+
+       #include <fcntl.h>           /* Definition of AT_* constants */
+       #include <unistd.h>
+
+       int faccessat(int dirfd, const char *pathname, int mode, int flags);
+                       /* But see C library/kernel differences, below */
+
+       int faccessat2(int dirfd, const char *pathname, int mode, int flags);
+
+   Feature Test Macro Requirements for glibc (see feature_test_macros(7)):
+
+       faccessat():
+           Since glibc 2.10:
+               _POSIX_C_SOURCE >= 200809L
+           Before glibc 2.10:
+               _ATFILE_SOURCE
+
+DESCRIPTION
+       access() checks whether the calling process can access the file pathname.  If pathname is a symbolic link, it is dereferenced.
+
+       The  mode specifies the accessibility check(s) to be performed, and is either the value F_OK, or a mask consisting of the bit‐
+       wise OR of one or more of R_OK, W_OK, and X_OK.  F_OK tests for the existence of the file.  R_OK, W_OK, and X_OK test  whether
+       the file exists and grants read, write, and execute permissions, respectively.
+```
+It's pretty straightforward, we read doc an could find that `R_OK` it's mode specifies the accessibility and `R_OK` checks whether the file exists and grants read permissions. Same approach could be applied on other `syscalls`. 
