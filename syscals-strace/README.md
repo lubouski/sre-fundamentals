@@ -1,3 +1,21 @@
+### Intro
+System call general details:
+* A system call changes the processor state from user mode to kernel mode, and CPU can access protected kernel memory.
+* The set of system calls is fixed. Each system call is identified by a uniq number.
+* Each system call may have a set of arguments the specify information to be transferred from user space(i.e the process virual address space) to kernel space and vice versa.
+
+From programming point of view, invoking system call looks much like calling a C function. However, behind the scenes many steps occur.
+1. The application program makes a system call by invoking a wrapper function in the C library.
+2. The wrapper func must take all of the system call arguments available to the system call trap-handling routine. These args are passed to the wrapper via the stack, but the kernek expects them in specific registers.
+3. Since all system calls enter the kernel in the same way, the kernel needs some method of identifying the system call. To permit this, the wrapper func copies the system call number into a specific CPU register(%eax)
+4. The wrapper func executes a trap machine instruction (int 0x80), which causes the processor to switch from user mode to kernel mode and execute code pointed to by location 0x80 (128 decimal).
+5. In response to trap to location 0x80, the kernel invokes its system_call() routine (located in the assembler file arch/i386/entry.S) to handle the trap:
+a) Saves register values onto the kernel stack.
+b) Checks the validity of the system call number.
+c) Invokes the appropriate system call service routine, which is found by using the system call number to index a table of all system call service routines. Then service routine performes the required task, which may invoke modifying values at address specified in the given arguments and transfering data between user memory and kernel memory. Finally the service routine returns a result status to the system_call() routine.
+d) Restores register values from the kernel stack and places the system call return value to the stack.
+e) Returns to the wrapper function, simultaneously returning the processor to user mode.  
+
 ### Linux syscall fundamentals
 The goal of this repository is to teach how we interact with Linux kernel. To help with this task, lets create a `c` language binary. Assume that the source code is stored in a file called 'hello.c'. To compile the file 'hello.c' with gcc, use the following command:
 ```
